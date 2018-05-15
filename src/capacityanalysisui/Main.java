@@ -4,6 +4,7 @@ import javafx.application.Application;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
@@ -13,6 +14,9 @@ import javafx.scene.layout.Pane;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class Main extends Application {
 
@@ -56,10 +60,12 @@ public class Main extends Application {
     public GridPane createParameterPane() {
         GridPane grid = new GridPane();
 
-        grid.setAlignment(Pos.CENTER);
+        grid.setAlignment(Pos.TOP_LEFT);
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setPadding(new Insets(25, 25, 25, 25));
+
+        Map<String, Node> map = new HashMap<>();
 
         // simulation/data collection dates
 
@@ -76,11 +82,15 @@ public class Main extends Application {
         DatePicker simStartInput = new DatePicker();
         grid.add(simStartInput, 2,1);
 
+        map.put("plan.startDate", simStartInput);
+
         Label simEnd = new Label("End:");
         grid.add(simEnd, 3, 1);
 
         DatePicker simEndInput = new DatePicker();
         grid.add(simEndInput, 4, 1);
+
+        map.put("plan.endDate", simEndInput);
 
         Text dataCollectionTitle = new Text("Data Collection:");
         grid.add(dataCollectionTitle, 0,2);
@@ -91,10 +101,13 @@ public class Main extends Application {
         DatePicker dcStartInput = new DatePicker();
         grid.add(dcStartInput, 2, 2);
 
+        map.put("experimentParameters.dataCollectionBeginDate", dcStartInput);
+
         Label dcEnd = new Label("End:");
         grid.add(dcEnd, 3, 2);
 
         TextField dcEndInput = new TextField();
+        dcEndInput.setEditable(false);
         grid.add(dcEndInput, 4, 2);
 
         // student parameters
@@ -109,6 +122,8 @@ public class Main extends Application {
         TextField startOfDayInput = new TextField();
         grid.add(startOfDayInput, 1, 4, 2, 1);
 
+        map.put("ruleSet.startOfDay", startOfDayInput);
+
         Label startOfDayUnits = new Label("(HH:MM)");
         grid.add(startOfDayUnits, 3, 4, 2, 1);
 
@@ -117,6 +132,8 @@ public class Main extends Application {
 
         TextField endOfDayInput = new TextField();
         grid.add(endOfDayInput, 1, 5, 2, 1);
+
+        map.put("ruleSet.endOfDay", endOfDayInput);
 
         Label endOfDayUnits = new Label("(HH:MM)");
         grid.add(endOfDayUnits, 3, 5, 2, 1);
@@ -127,6 +144,8 @@ public class Main extends Application {
         TextField nightFlightInput = new TextField();
         grid.add(nightFlightInput, 1, 6, 2, 1);
 
+        map.put("ruleSet.earliestNightFlight", nightFlightInput);
+
         Label nightFlightUnits = new Label("(HH:MM)");
         grid.add(nightFlightUnits, 3, 6, 2, 1);
         
@@ -135,6 +154,8 @@ public class Main extends Application {
 
         TextField studySpanInput = new TextField();
         grid.add(studySpanInput, 1, 7, 2, 1);
+
+        map.put("ruleSet.maximumStudentDailyMakespanHours", studySpanInput);
 
         Label studySpanUnits = new Label("hours");
         grid.add(studySpanUnits, 3, 7, 2, 1);
@@ -145,6 +166,8 @@ public class Main extends Application {
         TextField dailyHoursInput = new TextField();
         grid.add(dailyHoursInput, 1, 8, 2, 1);
 
+        map.put("ruleSet.maximumStudentDailyStudyHours", dailyHoursInput);
+
         Label dailyHoursUnits = new Label("hours");
         grid.add(dailyHoursUnits, 3, 8, 2, 1);
 
@@ -153,6 +176,8 @@ public class Main extends Application {
 
         TextField timeOffInput = new TextField();
         grid.add(timeOffInput, 1, 9, 2, 1);
+
+        map.put("ruleSet.minimumTimeOffHours", timeOffInput);
 
         Label timeOffUnits = new Label("hours");
         grid.add(timeOffUnits, 3, 9, 2, 1);
@@ -169,11 +194,15 @@ public class Main extends Application {
         TextField randomSeedInput = new TextField();
         grid.add(randomSeedInput, 1, 11, 2, 1);
 
+        map.put("general.randomSeed", randomSeedInput);
+
         Label illnessRate = new Label("Illness rate:");
         grid.add(illnessRate, 0, 12);
 
         TextField illnessRateInput = new TextField();
         grid.add(illnessRateInput, 1, 12, 2, 1);
+
+        map.put("ruleSet.studentIllnessRate", illnessRateInput);
 
         Label illnessRateUnits = new Label("(between 0 and 1)");
         grid.add(illnessRateUnits, 3, 12, 2, 1);
@@ -182,13 +211,25 @@ public class Main extends Application {
 
         // TODO fill this in with options
 
+        // buttons
+
+        Button saveButton = new Button("Save parameters");
+        grid.add(saveButton, 9, 20, 2, 1);
+
+        Button loadButton = new Button("Load parameters");
+        grid.add(loadButton, 9, 21, 2, 1);
+
+        saveButton.setOnAction(e -> actions.saveParameters(map));
+
+        loadButton.setOnAction(e -> actions.loadParameters(map));
+
         return grid;
     }
 
     public GridPane createIOPane() {
         GridPane grid = new GridPane();
 
-        grid.setAlignment(Pos.CENTER);
+        grid.setAlignment(Pos.TOP_LEFT);
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setPadding(new Insets(25, 25, 25, 25));
@@ -209,7 +250,7 @@ public class Main extends Application {
         grid.add(statisticType, 0, 1, 2, 1);
 
         ComboBox statisticTypeInput = new ComboBox();
-        statisticTypeInput.getItems().addAll(StatisticType.values());
+        statisticTypeInput.getItems().addAll((Object[])StatisticType.values());
         statisticTypeInput.setValue("Summary statistic");
         grid.add(statisticTypeInput, 1, 2, 2, 1);
 
@@ -235,7 +276,7 @@ public class Main extends Application {
         grid.add(viewBy, 0, 5, 2, 1);
 
         ComboBox viewByInput = new ComboBox();
-        viewByInput.getItems().addAll(ViewBy.values());
+        viewByInput.getItems().addAll((Object[])ViewBy.values());
         viewByInput.setValue("Year");
         grid.add(viewByInput, 1, 6, 2, 1);
 
@@ -243,13 +284,14 @@ public class Main extends Application {
         grid.add(viewAs, 0, 7, 2, 1);
 
         ComboBox viewAsInput = new ComboBox();
-        viewAsInput.getItems().addAll(ViewAs.values());
+        viewAsInput.getItems().addAll((Object[])ViewAs.values());
         viewAsInput.setValue("Average");
         grid.add(viewAsInput, 1, 8, 2, 1);
 
         // chart
 
         Pane chartPane = new Pane();
+        chartPane.setMinSize(600.0, 600.0);
         grid.add(chartPane, 3, 0, 1, 10);
 
         // button
